@@ -61,6 +61,21 @@ campus-blood-emergency/
 
 ```
 
+## 🔌 Daftar API
+
+Selain register dan login, semua endpoint butuh header `Authorization: Bearer <token>`.
+
+| Method | Endpoint | Fungsi |
+|---|---|---|
+| POST | `/api/register` | Daftar akun (`email_kampus`, `password`) |
+| POST | `/api/login` | Masuk, menghasilkan token |
+| GET | `/api/profil` | Lihat profil pendonor |
+| POST | `/api/profil` | Simpan atau ubah profil |
+| GET | `/api/jadwal` | Jadwal mendatang dan sisa kuota |
+| POST | `/api/jadwal/:id/daftar` | Daftar ke jadwal |
+| DELETE | `/api/jadwal/:id/daftar` | Batalkan pendaftaran |
+| GET | `/api/riwayat` | Riwayat pendaftaran donor |
+
 ## 🚀 Cara Instalasi dan Menjalankan
 
 ### install 
@@ -77,6 +92,7 @@ campus-blood-emergency/
 1. Nyalakan MySQL, lalu buka phpMyAdmin.
 2. Buat database baru bernama `campus_blood_emergency`.
 3. Pilih database tersebut, buka tab **Import**, lalu pilih file `database/campus_blood_emergency.sql`.
+4. Import lagi file `database/tambahan_jadwal.sql` (tabel jadwal dan pendaftaran).
 
 ### 3. Jalankan server
 Buka terminal di folder `backend` (di Windows, gunakan **Command Prompt**

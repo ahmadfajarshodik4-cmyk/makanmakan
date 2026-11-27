@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:3000/api';
+const API_URL = '/api';
 
 let isRegisterMode = false;
 let currentProfile = null;
@@ -157,6 +157,8 @@ document.getElementById('profil-form').addEventListener('submit', async (e) => {
 
 // Render Halaman 03 Beranda & Tab Profil
 function renderBeranda(showBanner = false, bannerMessage = 'Profil pendonor berhasil disimpan') {
+  muatDonor();
+
   const banner = document.getElementById('success-banner');
   const bannerText = document.getElementById('success-banner-text');
 
@@ -180,15 +182,88 @@ function renderBeranda(showBanner = false, bannerMessage = 'Profil pendonor berh
   const summaryBox = document.getElementById('profile-summary-box');
   if (currentProfile) {
     summaryBox.innerHTML = `
-      <strong>${currentProfile.nama_lengkap}</strong>
-      <p>NIM/ID: ${currentProfile.nim_id_civitas}</p>
-      <p>Fakultas/Unit: ${currentProfile.fakultas_unit}</p>
-      <p>No. Telepon: ${currentProfile.no_telepon}</p>
-      <p>Golongan Darah: <b>${currentProfile.golongan_darah}</b></p>
+      <strong>${esc(currentProfile.nama_lengkap)}</strong>
+      <p>NIM/ID: ${esc(currentProfile.nim_id_civitas)}</p>
+      <p>Fakultas/Unit: ${esc(currentProfile.fakultas_unit)}</p>
+      <p>No. Telepon: ${esc(currentProfile.no_telepon)}</p>
+      <p>Golongan Darah: <b>${esc(currentProfile.golongan_darah)}</b></p>
       <p>Status: ${currentProfile.bersedia_donor == 1 ? 'Bersedia Donor' : 'Tidak Aktif Donor'}</p>
     `;
   }
 }
+
+// Cegah teks dari database dibaca sebagai HTML
+function esc(teks) {
+  const el = document.createElement('div');
+  el.textContent = teks;
+  return el.innerHTML;
+}
+
+// Panggil API yang butuh token
+async function api(path, method = 'GET') {
+  const res = await fetch(`${API_URL}${path}`, {
+    method,
+    headers: { 'Authorization': `Bearer ${localStorage.getItem('cbe_token')}` }
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || 'Terjadi kesalahan.');
+  return data;
+}
+
+function formatWaktu(j) {
+  const tanggal = new Date(`${j.tanggal}T00:00:00`).toLocaleDateString('id-ID', {
+    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+  });
+  const jam = (t) => t.slice(0, 5).replace(':', '.');
+  return `${tanggal} • ${jam(j.jam_mulai)} - ${jam(j.jam_selesai)} WIB`;
+}
+
+function kartu(judul, isi) {
+  return `<div class="info-card mt-12"><div class="card-body"><strong>${esc(judul)}</strong>${isi}</div></div>`;
+}
+
+// Ambil jadwal & riwayat dari server, lalu tampilkan
+async function muatDonor() {
+  try {
+    const [{ jadwal }, { riwayat }] = await Promise.all([api('/jadwal'), api('/riwayat')]);
+
+    document.getElementById('jadwal-list').innerHTML = jadwal.map((j) => {
+      const daftar = j.sudah_daftar == 1;
+      const penuh = !daftar && j.sisa_kuota <= 0;
+      const label = daftar ? 'Batalkan' : penuh ? 'Kuota Penuh' : 'Daftar';
+      return kartu(j.lokasi, `
+        <p>${formatWaktu(j)}</p>
+        <span class="link-red">Sisa kuota ${j.sisa_kuota} (${esc(j.penyelenggara)})</span>
+        <button type="button" class="${daftar ? 'btn-outline-blue' : 'btn-primary-red'} mt-12"
+          data-jadwal="${j.id_jadwal}" data-method="${daftar ? 'DELETE' : 'POST'}" ${penuh ? 'disabled' : ''}>${label}</button>`);
+    }).join('') || kartu('Belum ada jadwal', '<p>Belum ada kegiatan donor mendatang.</p>');
+
+    const labelStatus = { terdaftar: 'Terdaftar', selesai: 'Selesai', batal: 'Dibatalkan' };
+    document.getElementById('riwayat-list').innerHTML = riwayat.map((r) =>
+      kartu(r.lokasi, `<p>${formatWaktu(r)}</p><span class="link-red">${labelStatus[r.status]}</span>`)
+    ).join('') || kartu('Belum ada riwayat donor', '<p>Kamu belum pernah mendaftar donor darah.</p>');
+
+    const berikutnya = jadwal.find((j) => j.sudah_daftar == 1);
+    document.getElementById('next-title').textContent = berikutnya ? berikutnya.lokasi : 'Belum ada jadwal donor';
+    document.getElementById('next-detail').textContent = berikutnya
+      ? formatWaktu(berikutnya) : 'Jadwal yang kamu pilih akan tampil di sini.';
+  } catch (err) {
+    showAlert(err.message);
+  }
+}
+
+// Tombol Daftar / Batalkan pada kartu jadwal
+document.getElementById('jadwal-list').addEventListener('click', async (e) => {
+  const btn = e.target.closest('button[data-jadwal]');
+  if (!btn) return;
+  btn.disabled = true;
+  try {
+    await api(`/jadwal/${btn.dataset.jadwal}/daftar`, btn.dataset.method);
+  } catch (err) {
+    showAlert(err.message);
+  }
+  await muatDonor();
+});
 
 // Navigasi Bottom Bar
 function switchTab(tabName) {

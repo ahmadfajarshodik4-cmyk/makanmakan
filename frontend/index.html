@@ -210,8 +210,8 @@
                 </svg>
               </div>
               <div class="card-body">
-                <strong>Belum ada jadwal donor</strong>
-                <p>Jadwal yang kamu pilih akan tampil di sini.</p>
+                <strong id="next-title">Belum ada jadwal donor</strong>
+                <p id="next-detail">Jadwal yang kamu pilih akan tampil di sini.</p>
                 <a href="#" class="link-red" onclick="switchTab('jadwal'); return false;">Temukan jadwal</a>
               </div>
             </div>
@@ -236,32 +236,14 @@
         <div id="tab-jadwal" class="tab-view hidden">
           <h2 class="tab-title">Jadwal Donor Kampus</h2>
           <p class="tab-subtitle">Pilih lokasi dan waktu kegiatan donor darah terdekat.</p>
-          <div class="info-card mt-16">
-            <div class="card-body">
-              <strong>Aula Utama Rektorat</strong>
-              <p>Kamis, 3 Desember 2026 • 09.00 - 14.00 WIB</p>
-              <span class="link-red">Kuota Tersedia (PMI Kota)</span>
-            </div>
-          </div>
-          <div class="info-card mt-12">
-            <div class="card-body">
-              <strong>Gedung Student Center Lt. 1</strong>
-              <p>Senin, 14 Desember 2026 • 08.30 - 13.00 WIB</p>
-              <span class="link-red">Kuota Tersedia (KSR Kampus)</span>
-            </div>
-          </div>
+          <div id="jadwal-list"></div>
         </div>
 
         <!-- Tab Konten: Riwayat -->
         <div id="tab-riwayat" class="tab-view hidden">
           <h2 class="tab-title">Riwayat Donor</h2>
           <p class="tab-subtitle">Catatan partisipasi donor darahmu akan muncul di sini.</p>
-          <div class="info-card mt-16">
-            <div class="card-body">
-              <strong>Belum ada riwayat donor</strong>
-              <p>Kamu belum pernah melakukan donor darah melalui aplikasi ini.</p>
-            </div>
-          </div>
+          <div id="riwayat-list"></div>
         </div>
 
         <!-- Tab Konten: Profil & Logout -->
